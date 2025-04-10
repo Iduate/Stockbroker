@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model User {
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  email            String     @unique
+  password         String
+  firstName        String
+  middleName       String?
+  lastName         String
+  dateOfBirth      DateTime
+  country          String
+  phoneNumber      String
+  accountTypes     String[]   @default([])
+  accountOwnership String
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  accounts         Account[]
+  transactions     Transaction[]
+  portfolio        Portfolio?
+  trades           Trade[]
+  wallet           Wallet?
+}
+
+model Account {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  accountType String
+  balance     Float    @default(0)
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  accountId String   @db.ObjectId
+  account   Account  @relation(fields: [accountId], references: [id])
+  type      String   // "BUY" or "SELL"
+  symbol    String
+  quantity  Int
+  price     Float
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Portfolio {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  holdings  Holding[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Holding {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  portfolioId String   @db.ObjectId
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id])
+  symbol      String
+  shares      Float
+  avgPrice    Float
+  lastPrice   Float
+  trades      Trade[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Trade {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  holdingId   String   @db.ObjectId
+  holding     Holding  @relation(fields: [holdingId], references: [id])
+  type        TradeType
+  symbol      String
+  shares      Float
+  price       Float
+  total       Float
+  status      TradeStatus @default(COMPLETED)
+  executedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Wallet {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Float    @default(0)
+  currency  String   @default("USD")
+  deposits  Deposit[]
+  withdrawals Withdrawal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deposit {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletId  String   @db.ObjectId
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  amount    Float
+  status    TransactionStatus @default(PENDING)
+  method    PaymentMethod
+  reference String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Withdrawal {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletId  String   @db.ObjectId
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  amount    Float
+  status    TransactionStatus @default(PENDING)
+  method    PaymentMethod
+  reference String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+
+enum TradeStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  STRIPE
+} 

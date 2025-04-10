@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  directUrl = env("MONGODB_READ_REPLICAS")
+}
+
+model User {
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  email            String     @unique
+  password         String
+  firstName        String
+  middleName       String?
+  lastName         String
+  dateOfBirth      DateTime
+  country          String
+  phoneNumber      String
+  accountTypes     String[]
+  accountOwnership String
+  verificationCode String?
+  isVerified       Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  accounts         Account[]
+  documents        Document[]
+  portfolio        Portfolio?
+  wallet           Wallet?
+  resetToken       String?
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([createdAt])
+}
+
+model Account {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  type          String
+  name          String
+  accountNumber String   @unique
+  balance       Float    @default(0)
+  status        String   @default("pending") // pending, active, suspended, closed
+  currency      String   @default("USD")
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([accountNumber])
+  @@index([type])
+}
+
+model Document {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  type        String   // id_proof, address_proof, tax_document, etc.
+  url         String
+  status      String   @default("pending") // pending, verified, rejected
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Portfolio {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  holdings  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Wallet {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Float    @default(0)
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
