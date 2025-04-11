@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../store/authStore';
 import { FaSearch, FaStar, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { BuyDialog } from '../components/BuyDialog';
 import SearchBar from '../components/SearchBar';

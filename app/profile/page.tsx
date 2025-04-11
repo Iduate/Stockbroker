@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../store/authStore';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -72,19 +72,19 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-300">First Name</label>
                   <div className="mt-1 text-white">{profile?.firstName}</div>
-                </div>
+            </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Middle Name</label>
                   <div className="mt-1 text-white">{profile?.middleName || 'Not provided'}</div>
-                </div>
+          </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Last Name</label>
                   <div className="mt-1 text-white">{profile?.lastName}</div>
-                </div>
+        </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Email</label>
                   <div className="mt-1 text-white">{profile?.email}</div>
-                </div>
+              </div>
               </div>
             </div>
 
@@ -94,15 +94,15 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Phone Number</label>
                   <div className="mt-1 text-white">{profile?.phoneNumber}</div>
-                </div>
+                    </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Date of Birth</label>
                   <div className="mt-1 text-white">{profile?.dateOfBirth}</div>
-                </div>
+                    </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Country</label>
                   <div className="mt-1 text-white">{profile?.country}</div>
-                </div>
+            </div>
               </div>
             </div>
           </div>

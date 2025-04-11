@@ -1,13 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/apiAuth';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth(request as any);
-    if (user instanceof NextResponse) return user;
+    const authResponse = await requireAuth(request);
+    if (authResponse instanceof NextResponse) {
+      return authResponse;
+    }
 
-    const { amount, currency = 'USD' } = await request.json();
+    const user = authResponse;
+    const body = await request.json();
+    const { amount, currency = 'USD' } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -19,17 +23,22 @@ export async function POST(request: Request) {
     // Create payment record
     const payment = await prisma.payment.create({
       data: {
-        userId: user.id,
+        user: {
+          connect: {
+            id: user.id
+          }
+        },
         amount,
         currency,
         status: 'pending',
+        type: 'paypal',
         paymentMethod: 'paypal'
       }
-    });
+      });
 
-    return NextResponse.json({
+      return NextResponse.json({
       paymentId: payment.id,
-      amount,
+        amount,
       currency
     });
   } catch (error) {

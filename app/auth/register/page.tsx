@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../../store/authStore';
 import { toast } from 'sonner';
-import countries from '@/utils/countries';
+import { countries } from '../../utils/countries';
 
 interface RegistrationData {
   firstName: string;
@@ -47,8 +47,8 @@ export default function RegisterPage() {
       // Validate passwords match
       if (formData.password !== formData.confirmPassword) {
         toast.error('Passwords do not match');
-        return;
-      }
+      return;
+    }
 
       // Validate required fields
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || 
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
               />
-            </div>
+          </div>
 
             <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300">
@@ -258,13 +258,13 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <button
-              type="submit"
-              disabled={isLoading}
+          <button
+            type="submit"
+            disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
+          >
               {isLoading ? 'Creating account...' : 'Create account'}
-            </button>
+          </button>
           </div>
         </form>
       </div>

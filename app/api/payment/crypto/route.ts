@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '../../../../lib/prisma';
+import { requireAuth } from '../../../../lib/apiAuth';
 
 // Mock exchange rates (in a real app, fetch from a crypto price API)
 const EXCHANGE_RATES = {
-  BTC: 40000,
-  ETH: 2200,
-  USDT: 1,
-};
+  BTC: 50000,
+  ETH: 3000,
+  USDT: 1
+} as const;
+
+type CryptoCurrency = keyof typeof EXCHANGE_RATES;
 
 // Mock wallet addresses (in a real app, generate unique addresses for each transaction)
 const WALLET_ADDRESSES = {
@@ -14,42 +18,54 @@ const WALLET_ADDRESSES = {
   USDT: 'TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6',
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { amount, userId, currency = 'BTC' } = body;
+    const authResponse = await requireAuth(request);
+    if (authResponse instanceof NextResponse) {
+      return authResponse;
+    }
 
-    if (!EXCHANGE_RATES[currency]) {
+    const user = authResponse;
+    const body = await request.json();
+    const { amount, currency = 'BTC' } = body;
+
+    // Validate currency
+    const cryptoCurrency = currency as CryptoCurrency;
+    if (!EXCHANGE_RATES[cryptoCurrency]) {
       return NextResponse.json(
         { error: 'Unsupported cryptocurrency' },
         { status: 400 }
       );
     }
 
-    // Calculate crypto amount based on current exchange rate
-    const cryptoAmount = amount / EXCHANGE_RATES[currency];
+    // Calculate USD amount
+    const usdAmount = amount * EXCHANGE_RATES[cryptoCurrency];
 
-    // In a real application, you would:
-    // 1. Generate a unique wallet address for this transaction
-    // 2. Save the pending transaction in your database
-    // 3. Set up webhooks to monitor the blockchain for payment
-    // 4. Send confirmation email to user
-    // 5. Update user's balance once payment is confirmed
-
-    return NextResponse.json({
-      success: true,
-      message: 'Crypto payment address generated',
-      currency,
-      fiatAmount: amount,
-      cryptoAmount: cryptoAmount.toFixed(8),
-      address: WALLET_ADDRESSES[currency],
-      exchangeRate: EXCHANGE_RATES[currency],
-      expiresIn: '1 hour',
+    // Create payment record
+    const payment = await prisma.payment.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id
+          }
+        },
+        amount: usdAmount,
+        currency: 'USD',
+        status: 'pending',
+        type: 'crypto',
+        paymentMethod: 'crypto',
+        cryptoDetails: {
+          cryptoCurrency,
+          cryptoAmount: amount
+        }
+      }
     });
+
+    return NextResponse.json({ payment });
   } catch (error) {
     console.error('Crypto payment error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate crypto payment' },
+      { error: 'Failed to process payment' },
       { status: 500 }
     );
   }

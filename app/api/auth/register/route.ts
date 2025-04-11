@@ -66,7 +66,8 @@ export async function POST(request: Request) {
             type: 'individual',
             status: 'active',
             balance: 0,
-            currency: 'USD'
+            currency: 'USD',
+            accountNumber: `ACC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
           }
         }),
         tx.portfolio.create({

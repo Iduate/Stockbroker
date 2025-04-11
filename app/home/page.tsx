@@ -37,7 +37,7 @@ import {
   Filler
 } from 'chart.js';
 import { MagnifyingGlassIcon, BellIcon } from '@heroicons/react/24/outline';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../store/authStore';
 import { toast } from 'sonner';
 
 // Register ChartJS components
@@ -964,18 +964,18 @@ export default function HomePage() {
       greeting = 'Good evening';
     }
 
-    return (
-      <div className="mb-8">
+      return (
+        <div className="mb-8">
         <h1 className="text-4xl font-bold text-white mb-2">
           {greeting}, {userInfo.firstName} {userInfo.lastName}!
-        </h1>
+          </h1>
         <p className="text-xl text-blue-200/80">
           {userInfo.isNewUser 
             ? "Welcome to your new trading account! Let's get started."
             : "Here's your trading dashboard. Ready to make some moves?"}
-        </p>
-      </div>
-    );
+          </p>
+        </div>
+      );
   };
 
   return (

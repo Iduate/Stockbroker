@@ -7,8 +7,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
-  directUrl = env("MONGODB_READ_REPLICAS")
+  url      = env("MONGODB_URI")
 }
 
 model User {
@@ -31,9 +30,9 @@ model User {
   documents        Document[]
   portfolio        Portfolio?
   wallet           Wallet?
+  payments         Payment[]
   resetToken       String?
 
-  @@index([email])
   @@index([phoneNumber])
   @@index([createdAt])
 }
@@ -42,7 +41,7 @@ model Account {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   type          String
   name          String
-  accountNumber String   @unique
+  accountNumber String?  // Made optional and removed unique constraint
   balance       Float    @default(0)
   status        String   @default("pending") // pending, active, suspended, closed
   currency      String   @default("USD")
@@ -51,8 +50,6 @@ model Account {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([userId])
-  @@index([accountNumber])
   @@index([type])
 }
 
@@ -65,8 +62,6 @@ model Document {
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@index([userId])
 }
 
 model Portfolio {
@@ -76,8 +71,6 @@ model Portfolio {
   holdings  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([userId])
 }
 
 model Wallet {
@@ -88,6 +81,20 @@ model Wallet {
   currency  String   @default("USD")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@index([userId])
+model Payment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("pending") // pending, completed, failed
+  type          String   // crypto, bank, paypal
+  paymentMethod String   // paypal, bank, crypto
+  cryptoDetails Json?    // For crypto payments
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
 }

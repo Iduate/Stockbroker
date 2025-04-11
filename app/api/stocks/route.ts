@@ -1,34 +1,34 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '../../lib/apiAuth';
 import { prisma } from '../../lib/prisma';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireAuth(request as any);
-    if (user instanceof NextResponse) return user;
+    const authResponse = await requireAuth(request);
+    if (authResponse instanceof NextResponse) {
+      return authResponse;
+    }
 
     const { searchParams } = new URL(request.url);
+    const symbol = searchParams.get('symbol');
     const sector = searchParams.get('sector');
-    const search = searchParams.get('search');
 
-    const where = {
-      ...(sector && { sector }),
-      ...(search && {
-        OR: [
-          { symbol: { contains: search, mode: 'insensitive' } },
-          { name: { contains: search, mode: 'insensitive' } }
-        ]
-      })
-    };
+    const where: any = {};
+    if (symbol) {
+      where.symbol = { contains: symbol, mode: 'insensitive' };
+    }
+    if (sector) {
+      where.sector = { contains: sector, mode: 'insensitive' };
+    }
 
-    const stocks = await prisma.stock.findMany({
+    const stocks = await prisma.stocks.findMany({
       where,
       orderBy: {
         symbol: 'asc'
       }
     });
 
-    return NextResponse.json({ stocks });
+    return NextResponse.json(stocks);
   } catch (error) {
     console.error('Error fetching stocks:', error);
     return NextResponse.json(

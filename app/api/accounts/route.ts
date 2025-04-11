@@ -63,11 +63,12 @@ export async function POST(request: Request) {
     // Store the account type in the database with user reference
     const account = await prisma.account.create({
       data: {
+        name: `${user.firstName}'s ${accountType} Account`,
         type: accountType,
         userId: user.id,
         accountNumber,
-        status: 'pending',
-        balance: 0
+        status: 'active',
+        balance: 0,
       },
     });
 
